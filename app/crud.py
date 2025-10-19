@@ -5,11 +5,16 @@ from app.types import Task as TaskType
 
 def create_task(db: Session, data: TaskType):
     task = Task(description=data.description, duration_min=data.duration_min, status=data.status)
-    db.add(task)
-    db.commit()
-    db.refresh(task)
+    db.add(task) # Add to session
+    db.commit() # Save to DB
+    db.refresh(task) # get updated task with ID
 
     return task
+
+
+def get_all_tasks(db: Session):
+    tasks = db.query(Task).all()
+    return tasks
 
 
 def get_task_by_id(db: Session, id: int):

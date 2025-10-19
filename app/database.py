@@ -4,9 +4,10 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 DATABASE_URL = "postgresql://user@localhost:5432/fastapi_todo"
 
+# Create a connection to the database
 engine = create_engine(DATABASE_URL, echo=True)
 
-# create connection to the database
+# Create a configured "Session" class
 Session = sessionmaker(autoflush=False, bind=engine)
 
 # base class for models 

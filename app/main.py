@@ -16,16 +16,18 @@ Base.metadata.create_all(bind=engine)
 def get_root():
     return { "greeting": "Hello world. API works fine 🎉" }
 
+
 # Create task
 @app.post("/create-task")
 async def create_task(task_data: TaskType, db: Session = Depends(get_db)):
     task = crud.create_task(db, task_data)
     return task
 
+
 # Get all tasks
 @app.get("/tasks")
 async def get_all_tasks(db: Session = Depends(get_db)):
-    return db.query(Task).all()
+    return crud.get_all_tasks(db)
 
 
 # Get task by Id
