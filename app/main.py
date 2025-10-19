@@ -1,9 +1,9 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from .models import Base, Task
+from .models import Base
 from .database import engine, get_db
 from . import crud
-from .types import Task as TaskType
+from .schemas import Task as TaskType, TokenResponse, UserCreate
 
 
 app = FastAPI()
@@ -47,7 +47,21 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     message = crud.delete_task(db, task)
     return message
     
-    
+
+# AUTHENTICATION ROUTES
+
+# Signup
+@app.post("/signup", response_model=TokenResponse)
+def signup(user: UserCreate, db: Session = Depends(get_db)):
+    token = crud.signup(db, user)
+    return token
+
+
+# Login
+@app.post("/login", response_model=TokenResponse)
+def login(user: UserCreate, db: Session = Depends(get_db)):
+    token = crud.login(db, user)
+    return token
 
 
 

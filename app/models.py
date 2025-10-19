@@ -12,6 +12,7 @@ class TaskStatus(enum.Enum):
     DONE = "done"
 
 
+# TASK
 class Task(Base):
 
     __tablename__ = "tasks"
@@ -22,3 +23,10 @@ class Task(Base):
     status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.NOT_STARTED)
 
 
+# USER
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    password_hash = Column(String)
