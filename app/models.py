@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Enum
+from sqlalchemy import Column, String, Integer, Enum, ForeignKey
 import enum
 from .database import Base
 
@@ -18,6 +18,7 @@ class Task(Base):
     __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     description = Column(String, index=True)
     duration_min = Column(Integer, nullable=False)
     status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.NOT_STARTED)
