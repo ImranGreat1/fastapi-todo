@@ -6,7 +6,6 @@ class Task(BaseModel):
     description: str
     status: TaskStatus = TaskStatus.NOT_STARTED
     duration_min: int
-    user_id: int
 
 
 class UserCreate(BaseModel):
@@ -18,7 +17,6 @@ class TokenResponse(BaseModel):
     token: str
     token_type: str
     email: str
-    user_id: int
 
 
 class TokenPayload(BaseModel):

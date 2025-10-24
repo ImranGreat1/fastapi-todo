@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from .models import Base
@@ -18,13 +18,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 @app.get("/")
 def get_root():
-    return { "greeting": "Hello world. API works fine 🎉" }
+    return { "greeting": "Hello World. Welcome to FastAPI todo app 🎉" }
 
 
 # Create task
-@app.post("/create-task")
-async def create_task(task_data: TaskType, db: Session = Depends(get_db)):
-    task = crud.create_task(db, task_data)
+@app.post("/tasks", dependencies=[Depends(crud.verify_token_middleware)])
+async def create_task(task_data: TaskType, request: Request, db: Session = Depends(get_db)):
+    task = crud.create_task(db, task_data, request["state"]["user"]["user_id"])
     return task
 
 
@@ -35,8 +35,8 @@ async def get_all_tasks(db: Session = Depends(get_db)):
 
 
 @app.get("/tasks/user", dependencies=[Depends(crud.verify_token_middleware)])
-async def get_all_tasks_by_user(db: Session = Depends(get_db)):
-    return crud.get_all_tasks_by_user(db)
+async def get_all_tasks_by_user(request: Request, db: Session = Depends(get_db)):
+    return crud.get_all_tasks_by_user(db, request["state"]["user"]["user_id"])
 
 
 # Get task by Id
@@ -47,13 +47,9 @@ async def get_task(task_id: int, db: Session = Depends(get_db)):
 
 
 # Delete a task
-@app.delete("/delete-task/{task_id}")
-def delete_task(task_id: int, db: Session = Depends(get_db)):
-    task = crud.get_task_by_id(db, task_id)
-    if not task:
-        return { "message": f"Task with the ID of {task_id} does not exists" }
-    
-    message = crud.delete_task(db, task)
+@app.delete("/tasks/{task_id}", dependencies=[Depends(crud.verify_token_middleware)])
+def delete_task(request: Request, task_id: int, db: Session = Depends(get_db)):    
+    message = crud.delete_task(db, task_id, request["state"]["user"]["user_id"])
     return message
     
 

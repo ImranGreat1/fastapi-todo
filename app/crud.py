@@ -13,7 +13,7 @@ ALGORITHM = settings.ALGORITHM
 
 # TASK
 def create_task(db: Session, data: TaskType, user_id: int):
-    task = Task(description=data.description, duration_min=data.duration_min, status=data.status, user_id=data.user_id)
+    task = Task(description=data.description, duration_min=data.duration_min, status=data.status, user_id=user_id)
     db.add(task) # Add to session
     db.commit() # Save to DB
     db.refresh(task) # get updated task with ID
@@ -35,7 +35,15 @@ def get_task_by_id(db: Session, id: int):
     return task
 
 
-def delete_task(db: Session, task: Task):
+def delete_task(db: Session, task_id: int, user_id: int):
+    task = get_task_by_id(db, task_id)
+
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task does not exists")
+    
+    if task.user_id != user_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Access denied - You can't delete another person's task")
+
     db.delete(task)
     db.commit()
     return { "message": "Task deleted successfully" }
@@ -57,8 +65,8 @@ def signup(db: Session, userData: UserCreate):
     db.refresh(user)
 
     # Generate and return token
-    token = create_access_token({ "email": user.email })
-    return { "token": token, "token_type": "bearer", "email": user.email, "user_id": user.id }
+    token = create_access_token({ "email": user.email, "user_id": existing_user.id })
+    return { "token": token, "token_type": "bearer", "email": user.email }
 
 
 def login(db: Session, userData: UserCreate):
@@ -68,8 +76,8 @@ def login(db: Session, userData: UserCreate):
         raise HTTPException(status_code=401, detail="Invalid Credentials") 
     
     # Generate and return token
-    token = create_access_token({ "email": existing_user.email })
-    return { "token": token, "token_type": "bearer", "email": existing_user.email, "user_id": existing_user.id }
+    token = create_access_token({ "email": existing_user.email, "user_id": existing_user.id })
+    return { "token": token, "token_type": "bearer", "email": existing_user.email }
 
 
 def profile(token: str):
@@ -92,7 +100,8 @@ def verify_token_middleware(request: Request):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         # Optionally attach user info to request.state
-        # request.state.user = payload
+        print(payload)
+        request.state.user = payload
         return payload
     except JWTError:
         raise HTTPException(
